@@ -49,6 +49,40 @@ async function saveMessage(text, sender) {
                 sender: sender,
                 createdAt: serverTimestamp()
             }
+           
+// Load previous chat messages from Firestore
+async function loadChatHistory() {
+    try {
+        const user = currentUser || await authReady;
+
+        const messagesRef = collection(
+            db,
+            "users",
+            user.uid,
+            "messages"
+        );
+
+        const chatQuery = query(
+            messagesRef,
+            orderBy("createdAt", "asc")
+        );
+
+        const snapshot = await getDocs(chatQuery);
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+
+            if (data.text && data.sender) {
+                addMessage(data.text, data.sender);
+            }
+        });
+
+        console.log("Chat history loaded successfully!");
+    } catch (error) {
+        console.error("Chat history loading failed:", error);
+    }
+}
+       
         );
 
         console.log(sender + " message saved!");
