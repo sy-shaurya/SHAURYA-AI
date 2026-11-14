@@ -229,7 +229,10 @@ userInput.addEventListener("keydown", (event) => {
         sendMessage();
     }
 });
-
+// Automatically load previous conversations
+authReady.then(() => {
+    loadChatHistory();
+});
 // Startup
 console.log("--------------------------------");
 console.log("SHAURYA AI INITIALIZED");
