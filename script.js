@@ -37,18 +37,41 @@ const authReady = startAuthentication()
         throw error;
     });
 
-// Save messages to Firestore
-async function saveMessage(text, sender) {
-    try {
-        const user = currentUser || await authReady;
+async function sendMessage() {
+    const text = userInput.value.trim();
 
-        await addDoc(
-            collection(db, "users", user.uid, "messages"),
-            {
-                text: text,
-                sender: sender,
-                createdAt: serverTimestamp()
-            }
+    if (!text || sendBtn.disabled) {
+        return;
+    }
+
+    const originalText = sendBtn.textContent;
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "...";
+
+    userInput.value = "";
+
+    try {
+        addMessage(text, "user");
+        await saveMessage(text, "user");
+
+        const response = getDemoResponse(text);
+
+        addMessage(response, "ai");
+        await saveMessage(response, "ai");
+
+    } catch (error) {
+        console.error("Sending failed:", error);
+        addMessage("Something went wrong. Please try again.", "ai");
+
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = originalText;
+        userInput.focus();
+    }
+}
+
+
            
 // Load previous chat messages from Firestore
 async function loadChatHistory() {
