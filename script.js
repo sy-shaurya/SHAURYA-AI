@@ -9,7 +9,10 @@ import { db, startAuthentication } from "./firebase.js";
 import {
     collection,
     addDoc,
-    serverTimestamp
+    serverTimestamp,
+    getDocs,
+    query,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const userInput = document.getElementById("userInput");
