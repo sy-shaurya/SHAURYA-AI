@@ -1,4 +1,3 @@
-
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 const messages = document.getElementById("messages");
@@ -24,31 +23,42 @@ function addMessage(text, sender) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-function getDemoResponse(text) {
-    const input = text.toLowerCase();
 
-    if (input.includes("hello") || input.includes("hi")) {
-        return "Hello! I'm SHAURYA AI. How can I help you today?";
+function getDemoResponse(text) {
+    const input = text.toLowerCase().trim();
+
+    if (/^(hi|hello|hey|hii)\b/.test(input)) {
+        return "Hello! Welcome back. I'm SHAURYA AI. What can I do for you?";
     }
 
     if (input.includes("your name")) {
-        return "I'm SHAURYA AI, your personal AI assistant.";
+        return "I am SHAURYA AI — an original intelligence project created by Shaurya.";
     }
 
-    if (input.includes("who created you")) {
-        return "I am a project created by Shaurya.";
+    if (
+        input.includes("who created you") ||
+        input.includes("i am the creator") ||
+        input.includes("i created you") ||
+        input.includes("your creator")
+    ) {
+        return "Of course! You're Shaurya, my creator. Welcome to your AI command centre!";
+    }
+
+    if (input.includes("i am shaurya") || input.includes("my name is shaurya")) {
+        return "Welcome, Shaurya! It's great to have my creator here.";
     }
 
     if (input.includes("how are you")) {
-        return "All systems are ready! What shall we work on?";
+        return "All systems operational. SHAURYA AI is ready!";
     }
 
     if (input.includes("help")) {
-        return "I'm here to help! Ask me something or explore my upcoming features.";
+        return "I'm here to assist you with questions, coding, ideas and much more.";
     }
 
-    return "That's interesting! My AI intelligence connection is coming soon. For now, this is a demonstration response.";
-}
+    return "I've received your message! My full AI intelligence connection is coming soon.";
+            }
+
 
 function sendMessage() {
     const text = userInput.value.trim();
