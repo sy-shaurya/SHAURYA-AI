@@ -1,24 +1,61 @@
 
 /* =====================================
-   SHAURYA AI — MAIN JAVASCRIPT
+   SHAURYA AI — FIREBASE CONNECTED
    Created by Shaurya
 ===================================== */
+
+import { db, startAuthentication } from "./firebase.js";
+
+import {
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 const messages = document.getElementById("messages");
 
-// SHAURYA AI identity
 const AI_NAME = "SHAURYA AI";
 const CREATOR = "Shaurya";
 
+let currentUser = null;
+
+// Firebase authentication
+const authReady = startAuthentication()
+    .then((user) => {
+        currentUser = user;
+        console.log("Firebase authentication successful!");
+        console.log("User ID:", user.uid);
+        return user;
+    })
+    .catch((error) => {
+        console.error("Firebase authentication failed:", error);
+        throw error;
+    });
+
+// Save messages to Firestore
+async function saveMessage(text, sender) {
+    try {
+        const user = currentUser || await authReady;
+
+        await addDoc(
+            collection(db, "users", user.uid, "messages"),
+            {
+                text: text,
+                sender: sender,
+                createdAt: serverTimestamp()
+            }
+        );
+
+        console.log(sender + " message saved!");
+    } catch (error) {
+        console.error("Message saving failed:", error);
+    }
+}
+
 // Remove welcome message
 function removeWelcome() {
-    const welcome = messages.querySelector(".welcome");
-
-    if (welcome) {
-        welcome.remove();
-    }
 }
 
 // Display messages
@@ -38,17 +75,14 @@ function addMessage(text, sender) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-// AI response system (demo version)
+// Demo AI response system
 function getDemoResponse(text) {
-
     const input = text.toLowerCase().trim();
 
-    // Greetings
     if (/^(hi|hii|hello|hey|heyy)\b/.test(input)) {
         return `Hello, ${CREATOR}! Welcome to ${AI_NAME}. How can I help you today?`;
     }
 
-    // Creator recognition
     if (
         input.includes("who created you") ||
         input.includes("who is your creator") ||
@@ -65,7 +99,6 @@ function getDemoResponse(text) {
         return `Welcome, ${CREATOR}! You are the creator and owner of ${AI_NAME}. This project belongs to you!`;
     }
 
-    // AI identity
     if (
         input.includes("your name") ||
         input.includes("who are you")
@@ -73,7 +106,6 @@ function getDemoResponse(text) {
         return `I am ${AI_NAME}, an original AI assistant project created by ${CREATOR}.`;
     }
 
-    // Owner
     if (
         input.includes("who is your owner") ||
         input.includes("who owns you")
@@ -81,7 +113,6 @@ function getDemoResponse(text) {
         return `${CREATOR} is my creator and project owner.`;
     }
 
-    // Greetings and status
     if (input.includes("how are you")) {
         return "All systems operational! I'm ready to assist you.";
     }
@@ -93,12 +124,10 @@ function getDemoResponse(text) {
         return "I'm being developed to help with questions, coding, learning, creativity, voice interaction and image understanding.";
     }
 
-    // About the project
     if (input.includes("what is shaurya ai")) {
         return "SHAURYA AI is a personal AI assistant project created by Shaurya, with an original futuristic identity.";
     }
 
-    // Coding
     if (
         input.includes("javascript") ||
         input.includes("coding") ||
@@ -107,7 +136,6 @@ function getDemoResponse(text) {
         return "Coding is exciting! My full coding intelligence feature will arrive when the real AI backend is connected.";
     }
 
-    // Thanks
     if (
         input.includes("thank you") ||
         input.includes("thanks")
@@ -115,7 +143,6 @@ function getDemoResponse(text) {
         return "You're welcome, Shaurya! Always ready to help.";
     }
 
-    // Goodbye
     if (
         input.includes("bye") ||
         input.includes("goodbye")
@@ -123,13 +150,11 @@ function getDemoResponse(text) {
         return "Goodbye, Shaurya! SHAURYA AI will be ready when you return.";
     }
 
-    // Default response
     return `I've received your message, ${CREATOR}! My real AI intelligence connection is coming soon.`;
 }
 
 // Send messages
 function sendMessage() {
-
     const text = userInput.value.trim();
 
     if (!text || sendBtn.disabled) {
@@ -137,6 +162,7 @@ function sendMessage() {
     }
 
     addMessage(text, "user");
+    saveMessage(text, "user");
 
     userInput.value = "";
     sendBtn.disabled = true;
@@ -145,15 +171,14 @@ function sendMessage() {
     sendBtn.textContent = "...";
 
     setTimeout(() => {
-
         const response = getDemoResponse(text);
 
         addMessage(response, "ai");
+        saveMessage(response, "ai");
 
         sendBtn.disabled = false;
         sendBtn.textContent = originalText;
         userInput.focus();
-
     }, 500);
 }
 
@@ -162,12 +187,10 @@ sendBtn.addEventListener("click", sendMessage);
 
 // Enter key
 userInput.addEventListener("keydown", (event) => {
-
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
     }
-
 });
 
 // Startup
@@ -175,6 +198,7 @@ console.log("--------------------------------");
 console.log("SHAURYA AI INITIALIZED");
 console.log("CREATOR:", CREATOR);
 console.log("STATUS: ONLINE");
+console.log("FIREBASE: CONNECTING");
 console.log("--------------------------------");
+       
     
-        
