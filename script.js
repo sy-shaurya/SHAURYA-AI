@@ -23,6 +23,7 @@ const AI_NAME = "SHAURYA AI";
 const CREATOR = "Shaurya";
 
 let currentUser = null;
+let isSending = false;
 
 // Firebase authentication
 const authReady = startAuthentication()
@@ -37,43 +38,34 @@ const authReady = startAuthentication()
         throw error;
     });
 
-async function sendMessage() {
-    const text = userInput.value.trim();
-
-    if (!text || sendBtn.disabled) {
-        return;
-    }
-
-    const originalText = sendBtn.textContent;
-
-    sendBtn.disabled = true;
-    sendBtn.textContent = "...";
-
-    userInput.value = "";
-
+// Save messages to Firestore
+async function saveMessage(text, sender) {
     try {
-        addMessage(text, "user");
-        await saveMessage(text, "user");
+        const user = currentUser || await authReady;
 
-        const response = getDemoResponse(text);
+        const messagesRef = collection(
+            db,
+            "users",
+            user.uid,
+            "messages"
+        );
 
-        addMessage(response, "ai");
-        await saveMessage(response, "ai");
+        await addDoc(messagesRef, {
+            text: text,
+            sender: sender,
+            createdAt: serverTimestamp()
+        });
+
+        console.log(sender + " message saved!");
+        return true;
 
     } catch (error) {
-        console.error("Sending failed:", error);
-        addMessage("Something went wrong. Please try again.", "ai");
-
-    } finally {
-        sendBtn.disabled = false;
-        sendBtn.textContent = originalText;
-        userInput.focus();
+        console.error("Message saving failed:", error);
+        return false;
     }
 }
 
-
-           
-// Load previous chat messages from Firestore
+// Load previous chat history
 async function loadChatHistory() {
     try {
         const user = currentUser || await authReady;
@@ -101,21 +93,16 @@ async function loadChatHistory() {
         });
 
         console.log("Chat history loaded successfully!");
+
     } catch (error) {
         console.error("Chat history loading failed:", error);
-    }
-}
-       
-        );
-
-        console.log(sender + " message saved!");
-    } catch (error) {
-        console.error("Message saving failed:", error);
     }
 }
 
 // Remove welcome message
 function removeWelcome() {
+    const welcome = document.getElementById("welcomeMessage");
+    if (welcome) welcome.remove();
 }
 
 // Display messages
@@ -214,32 +201,46 @@ function getDemoResponse(text) {
 }
 
 // Send messages
-function sendMessage() {
+async function sendMessage() {
     const text = userInput.value.trim();
 
-    if (!text || sendBtn.disabled) {
-        return;
-    }
+    if (!text || isSending) return;
 
-    addMessage(text, "user");
-    saveMessage(text, "user");
-
-    userInput.value = "";
-    sendBtn.disabled = true;
+    isSending = true;
 
     const originalText = sendBtn.textContent;
+
+    sendBtn.disabled = true;
     sendBtn.textContent = "...";
 
-    setTimeout(() => {
+    userInput.value = "";
+
+    try {
+        // Display user message immediately
+        addMessage(text, "user");
+
+        // Save user message
+        await saveMessage(text, "user");
+
+        // Generate AI response
         const response = getDemoResponse(text);
 
+        // Display AI response
         addMessage(response, "ai");
-        saveMessage(response, "ai");
 
+        // Save AI response
+        await saveMessage(response, "ai");
+
+    } catch (error) {
+        console.error("Sending failed:", error);
+        addMessage("Something went wrong. Please try again.", "ai");
+
+    } finally {
+        isSending = false;
         sendBtn.disabled = false;
         sendBtn.textContent = originalText;
         userInput.focus();
-    }, 500);
+    }
 }
 
 // Button click
@@ -252,10 +253,12 @@ userInput.addEventListener("keydown", (event) => {
         sendMessage();
     }
 });
-// Automatically load previous conversations
+
+// Load previous conversations
 authReady.then(() => {
     loadChatHistory();
 });
+
 // Startup
 console.log("--------------------------------");
 console.log("SHAURYA AI INITIALIZED");
@@ -264,4 +267,3 @@ console.log("STATUS: ONLINE");
 console.log("FIREBASE: CONNECTING");
 console.log("--------------------------------");
        
-    
