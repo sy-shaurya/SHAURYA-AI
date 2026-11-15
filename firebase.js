@@ -15,6 +15,12 @@ import {
   getFirestore
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
+import {
+  getAI,
+  getGenerativeModel,
+  GoogleAIBackend
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-ai.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDxsrKx-7LI9wViv_9MGTJ4fJKxM0twa-M",
   authDomain: "shaurya-ai-e559a.firebaseapp.com",
@@ -26,7 +32,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Firebase App Check
 initializeAppCheck(app, {
   provider: new ReCaptchaEnterpriseProvider(
     "6LfB2yAuAAAAAMmn9xKLgiPfxq-ZUrsWPpyxWyQj"
@@ -34,12 +39,25 @@ initializeAppCheck(app, {
   isTokenAutoRefreshEnabled: true
 });
 
-// Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Gemini Developer API
+const ai = getAI(app, {
+  backend: new GoogleAIBackend()
+});
+
+const model = getGenerativeModel(ai, {
+  model: "gemini-2.5-flash"
+});
+
+export async function generateAIResponse(prompt) {
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
 
 export async function startAuthentication() {
   const result = await signInAnonymously(auth);
   return result.user;
-    }
+}
 
