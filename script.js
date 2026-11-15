@@ -210,10 +210,14 @@ async function sendMessage() {
         console.log("Gemini response generated successfully!");
 
     } catch (error) {
-    console.error("Gemini error:", error);
+    console.error("FULL GEMINI ERROR:", error);
+    console.error("ERROR MESSAGE:", error.message);
+    console.error("ERROR CODE:", error.code);
+    console.error("ERROR DETAILS:", error.customData);
 
     addMessage(
-        "ERROR: " + (error.message || String(error)),
+        "GEMINI ERROR: " +
+        (error.message || String(error)),
         "ai"
     );
 
