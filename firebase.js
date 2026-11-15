@@ -2,6 +2,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 
 import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app-check.js";
+
+import {
   getAuth,
   signInAnonymously
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
@@ -21,10 +26,20 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+// Firebase App Check
+initializeAppCheck(app, {
+  provider: new ReCaptchaEnterpriseProvider(
+    "6LfB2yAuAAAAAMmn9xKLgiPfxq-ZUrsWPpyxWyQj"
+  ),
+  isTokenAutoRefreshEnabled: true
+});
+
+// Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export async function startAuthentication() {
   const result = await signInAnonymously(auth);
   return result.user;
-}
+    }
+
