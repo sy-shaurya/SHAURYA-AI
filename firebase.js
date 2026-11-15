@@ -34,7 +34,7 @@ const app = initializeApp(firebaseConfig);
 
 initializeAppCheck(app, {
   provider: new ReCaptchaEnterpriseProvider(
-    "6LfB2yAuAAAAAMmn9xKLgiPfxq-ZUrsWPpyxWyQj"
+    "6Lc74iAuAAAAAFgx9FtPqQ-3hVg5ftqPz9dFH_W5"
   ),
   isTokenAutoRefreshEnabled: true
 });
