@@ -127,7 +127,7 @@ function getDemoResponse(text) {
     const input = text.toLowerCase().trim();
 
     if (/^(hi|hii|hello|hey|heyy)\b/.test(input)) {
-        return `Hello, ${CREATOR}! Welcome to ${AI_NAME}. How can I help you today?`;
+        return `Hello, Welcome! to ${AI_NAME}. How can I help you today?`;
     }
 
     if (
@@ -187,14 +187,14 @@ function getDemoResponse(text) {
         input.includes("thank you") ||
         input.includes("thanks")
     ) {
-        return "You're welcome, Shaurya! Always ready to help.";
+        return "You're welcome, Bro! Always ready to help.";
     }
 
     if (
         input.includes("bye") ||
         input.includes("goodbye")
     ) {
-        return "Goodbye, Shaurya! SHAURYA AI will be ready when you return.";
+        return "Goodbye, Bro! SHAURYA AI will be ready when you return.";
     }
 
     return `I've received your message, ${CREATOR}! My real AI intelligence connection is coming soon.`;
