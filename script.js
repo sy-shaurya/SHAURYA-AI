@@ -1,10 +1,14 @@
 
 /* =====================================
-   SHAURYA AI — FIREBASE CONNECTED
+   SHAURYA AI — Personal AI Module CONNECTED
    Created by Shaurya
 ===================================== */
 
-import { db, startAuthentication } from "./firebase.js";
+import {
+    db,
+    startAuthentication,
+    generateAIResponse
+} from "./firebase.js";
 
 import {
     collection,
@@ -24,6 +28,7 @@ const CREATOR = "Shaurya";
 
 let currentUser = null;
 let isSending = false;
+let conversationHistory = [];
 
 // Firebase authentication
 const authReady = startAuthentication()
@@ -51,8 +56,8 @@ async function saveMessage(text, sender) {
         );
 
         await addDoc(messagesRef, {
-            text: text,
-            sender: sender,
+            text,
+            sender,
             createdAt: serverTimestamp()
         });
 
@@ -89,6 +94,11 @@ async function loadChatHistory() {
 
             if (data.text && data.sender) {
                 addMessage(data.text, data.sender);
+
+                conversationHistory.push({
+                    sender: data.sender,
+                    text: data.text
+                });
             }
         });
 
@@ -122,82 +132,32 @@ function addMessage(text, sender) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-// Demo AI response system
-function getDemoResponse(text) {
-    const input = text.toLowerCase().trim();
+// Build Gemini prompt
+function buildPrompt() {
+    const recentMessages = conversationHistory.slice(-12);
 
-    if (/^(hi|hii|hello|hey|heyy)\b/.test(input)) {
-        return `Hello, Welcome! to ${AI_NAME}. How can I help you today?`;
-    }
+    const history = recentMessages.map((message) => {
+        const role = message.sender === "user" ? "User" : AI_NAME;
+        return `${role}: ${message.text}`;
+    }).join("\n");
 
-    if (
-        input.includes("who created you") ||
-        input.includes("who is your creator") ||
-        input.includes("your creator") ||
-        input.includes("i am shaurya") ||
-        input.includes("i'm shaurya") ||
-        input.includes("my name is shaurya") ||
-        input.includes("i am the creator") ||
-        input.includes("i created you") ||
-        input.includes("owner of shaurya ai") ||
-        input.includes("creator of shaurya ai") ||
-        input.includes("i am shaurya owner")
-    ) {
-        return `Welcome, ${CREATOR}! You are the creator and owner of ${AI_NAME}. This project belongs to you!`;
-    }
+    return `
+You are ${AI_NAME}, an intelligent AI assistant created by ${CREATOR}.
 
-    if (
-        input.includes("your name") ||
-        input.includes("who are you")
-    ) {
-        return `I am ${AI_NAME}, an original AI assistant project created by ${CREATOR}.`;
-    }
+Your identity:
+- Your name is ${AI_NAME}.
+- Your creator and owner is ${CREATOR}.
+- You are friendly, helpful, creative and intelligent.
+- Help with learning, coding, technology, writing and everyday questions.
+- Give clear and useful answers.
+- Remember the recent conversation context provided below.
+- Never pretend to have abilities you do not have.
 
-    if (
-        input.includes("who is your owner") ||
-        input.includes("who owns you")
-    ) {
-        return `${CREATOR} is my creator and project owner.`;
-    }
+Recent conversation:
+${history}
 
-    if (input.includes("how are you")) {
-        return "All systems operational! I'm ready to assist you.";
-    }
-
-    if (
-        input.includes("what can you do") ||
-        input.includes("your features")
-    ) {
-        return "I'm being developed to help with questions, coding, learning, creativity, voice interaction and image understanding.";
-    }
-
-    if (input.includes("what is shaurya ai")) {
-        return "SHAURYA AI is a personal AI assistant project created by Shaurya, with an original futuristic identity.";
-    }
-
-    if (
-        input.includes("javascript") ||
-        input.includes("coding") ||
-        input.includes("programming")
-    ) {
-        return "Coding is exciting! My full coding intelligence feature will arrive when the real AI backend is connected.";
-    }
-
-    if (
-        input.includes("thank you") ||
-        input.includes("thanks")
-    ) {
-        return "You're welcome, Bro! Always ready to help.";
-    }
-
-    if (
-        input.includes("bye") ||
-        input.includes("goodbye")
-    ) {
-        return "Goodbye, Bro! SHAURYA AI will be ready when you return.";
-    }
-
-    return `I've received your message, ${CREATOR}! My real AI intelligence connection is coming soon.`;
+Now respond to the latest user message naturally.
+`;
 }
 
 // Send messages
@@ -216,14 +176,25 @@ async function sendMessage() {
     userInput.value = "";
 
     try {
-        // Display user message immediately
+        await historyReady;
+
+        // Display user message
         addMessage(text, "user");
 
         // Save user message
         await saveMessage(text, "user");
 
-        // Generate AI response
-        const response = getDemoResponse(text);
+        conversationHistory.push({
+            sender: "user",
+            text
+        });
+
+        // Generate real Gemini response
+        const response = await generateAIResponse(buildPrompt());
+
+        if (!response) {
+            throw new Error("Gemini returned an empty response.");
+        }
 
         // Display AI response
         addMessage(response, "ai");
@@ -231,9 +202,20 @@ async function sendMessage() {
         // Save AI response
         await saveMessage(response, "ai");
 
+        conversationHistory.push({
+            sender: "ai",
+            text: response
+        });
+
+        console.log("Gemini response generated successfully!");
+
     } catch (error) {
-        console.error("Sending failed:", error);
-        addMessage("Something went wrong. Please try again.", "ai");
+        console.error("Gemini error:", error);
+
+        addMessage(
+            "I couldn't connect to Gemini right now. Please try again.",
+            "ai"
+        );
 
     } finally {
         isSending = false;
@@ -255,15 +237,14 @@ userInput.addEventListener("keydown", (event) => {
 });
 
 // Load previous conversations
-authReady.then(() => {
-    loadChatHistory();
-});
+const historyReady = authReady.then(() => loadChatHistory());
 
 // Startup
 console.log("--------------------------------");
 console.log("SHAURYA AI INITIALIZED");
 console.log("CREATOR:", CREATOR);
 console.log("STATUS: ONLINE");
+console.log("GEMINI: CONNECTING");
 console.log("FIREBASE: CONNECTING");
 console.log("--------------------------------");
-       
+   
