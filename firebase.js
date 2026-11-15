@@ -52,8 +52,21 @@ const model = getGenerativeModel(ai, {
 });
 
 export async function generateAIResponse(prompt) {
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  try {
+    console.log("Sending prompt to Gemini...");
+
+    const result = await model.generateContent(prompt);
+
+    const response = result.response.text();
+
+    console.log("REAL GEMINI RESPONSE:", response);
+
+    return response;
+
+  } catch (error) {
+    console.error("GEMINI CONNECTION ERROR:", error);
+    throw error;
+  }
 }
 
 export async function startAuthentication() {
