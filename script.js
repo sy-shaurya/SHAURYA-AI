@@ -210,12 +210,12 @@ async function sendMessage() {
         console.log("Gemini response generated successfully!");
 
     } catch (error) {
-        console.error("Gemini error:", error);
+    console.error("Gemini error:", error);
 
-        addMessage(
-            "I couldn't connect to Gemini right now. Please try again.",
-            "ai"
-        );
+    addMessage(
+        "ERROR: " + (error.message || String(error)),
+        "ai"
+    );
 
     } finally {
         isSending = false;
