@@ -47,9 +47,7 @@ const ai = getAI(app, {
   backend: new GoogleAIBackend()
 });
 
-const model = getGenerativeModel(ai, {
-  model: "gemini-3.8-flash"
-});
+console.log("ACTIVE GEMINI MODEL: gemini-3.8-flash");
 
 export async function generateAIResponse(prompt) {
   try {
